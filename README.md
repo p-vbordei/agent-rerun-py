@@ -1,39 +1,20 @@
 # agent-rerun (Python)
 
-> **Portable reproducibility seed bundle for AI-agent steps.** Python port of [`@p-vbordei/agent-rerun`](https://github.com/p-vbordei/agent-rerun) — passes the same C1–C4 conformance vectors.
-
 [![CI](https://github.com/p-vbordei/agent-rerun-py/actions/workflows/ci.yml/badge.svg)](https://github.com/p-vbordei/agent-rerun-py/actions/workflows/ci.yml)
-[![spec: v0.1 stable](https://img.shields.io/badge/spec-v0.1%20stable-blue)](./SPEC.md)
-[![license: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](./LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/agent-rerun)](https://pypi.org/project/agent-rerun/)
+[![Spec](https://img.shields.io/badge/spec-v0.1-blue)](./SPEC.md)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green)](./LICENSE)
 
-A `rerun.json` v0.1 bundle pins the inputs, sampling parameters, and expected output of one LLM step so any compatible runtime can reproduce it within a declared tolerance. The bundle is one JSON file, JCS-canonical bytes in, Ed25519-signed out.
+> **Idiomatic Python port of [@p-vbordei/agent-rerun](https://github.com/p-vbordei/agent-rerun).** Portable reproducibility seed bundle for AI-agent steps — capture every input that determines an output, share the bundle, verify it elsewhere. Byte-deterministic-compatible with the TS reference; passes the same conformance vectors.
 
-```python
-from agent_rerun import capture, verify, CaptureOptions, generate_key_pair
+## What's in the box
 
-kp = generate_key_pair()
-
-step = {
-    "model": {"vendor": "anthropic", "id": "claude-opus-4-7"},
-    "sampling": {"temperature": 0, "top_p": 1, "seed": 42},
-    "inputs": {
-        "system_prompt": "you are a helpful assistant",
-        "messages": [{"role": "user", "content": "say hi"}],
-    },
-    "runtime": {"class": "cloud"},
-    "expected": {"transcript": {"messages": [{"role": "assistant", "content": "hi"}]}},
-    "tolerance": {"level": "byte"},
-}
-
-bundle = capture(step, CaptureOptions(signing_key=kp.private_key))
-
-actual = {
-    "inputs": {"system_prompt": step["inputs"]["system_prompt"], "messages": step["inputs"]["messages"]},
-    "output": {"transcript": step["expected"]["transcript"]},
-}
-result = verify(bundle, actual)
-print("match" if result.verified else result.errors)
-```
+- `capture(step, opts)` — step record → JCS-canonical `rerun.json` v0.1 bundle, optionally signed.
+- `verify(bundle, actual)` — bundle + actual record → `VerifyResult { verified, errors, warnings }`. Enforces byte / semantic tolerances, fingerprint drift warnings, schema strictness.
+- `sign_bundle`, `verify_bundle_signature`, `generate_key_pair` — raw 32-byte Ed25519 over `JCS(bundle without "signature")`.
+- `cosine`, `encode_embedding`, `decode_embedding` — little-endian float32 base64 codec + cosine similarity for semantic tolerance.
+- `sha256_hex`, `sha256_of_jcs`, `jcs_bytes` — RFC 8785 canonicalization and the `sha256:<hex>` format used throughout the spec.
+- `rerun capture` / `rerun verify` — stdlib-only CLI. Exit `0` on pass, `1` on fail.
 
 ## Install
 
@@ -41,43 +22,77 @@ print("match" if result.verified else result.errors)
 pip install agent-rerun
 ```
 
-## CLI
+## Quickstart
 
-```bash
-rerun capture step.json -o bundle.rr [--key key.json]
-rerun verify bundle.rr actual.json
+```python
+from agent_rerun import CaptureOptions, capture, generate_key_pair, jcs_bytes, sha256_hex, verify
+
+kp = generate_key_pair()
+step = {
+    "model": {"vendor": "anthropic", "id": "claude-opus-4-7"},
+    "sampling": {"temperature": 0, "top_p": 1, "seed": 42},
+    "inputs": {"system_prompt": "you are a helpful assistant",
+               "messages": [{"role": "user", "content": "say hi"}]},
+    "runtime": {"class": "cloud"},
+    "expected": {"transcript": {"messages": [{"role": "assistant", "content": "hi"}]}},
+    "tolerance": {"level": "byte"},
+}
+
+bundle = capture(step, CaptureOptions(signing_key=kp.private_key))
+print("CID:", sha256_hex(jcs_bytes(bundle)))
+
+actual = {"inputs": step["inputs"], "output": {"transcript": step["expected"]["transcript"]}}
+print("verified:", verify(bundle, actual).verified)
 ```
 
-Exit `0` on pass, `1` on fail. Result is `{ "verified", "errors", "warnings" }` JSON on stdout.
+Run it:
 
-## Why this exists
+```bash
+uv run python examples/quickstart.py
+# bundle bytes : 673
+# bundle CID   : sha256:a93141461f4aae88192255d911f5b4e61f2e59b736706897faad562140fe629d
+# original     : PASS
+# tampered     : FAIL (BadSignature:signature does not match payload)
+```
 
-OpenAI's `seed` is best-effort. vLLM determinism is runtime-specific. SLSA proves builds, not LLM outputs. There was no vendor-agnostic envelope for an LLM step's inputs, params, and expected output you can sign, share, and verify on a different runtime within a declared tolerance. `agent-rerun` is that envelope. See the TS reference [README](https://github.com/p-vbordei/agent-rerun#readme) for the full landscape.
+## How it relates
+
+| Repo | Language | Status |
+|---|---|---|
+| [`agent-rerun`](https://github.com/p-vbordei/agent-rerun) | TypeScript | Reference (source of truth). |
+| [`agent-rerun-py`](https://github.com/p-vbordei/agent-rerun-py) | Python | This port (PyPI). |
+| [`agent-rerun-rs`](https://github.com/p-vbordei/agent-rerun-rs) | Rust | Sibling port. |
 
 ## Conformance
 
-This port is verified against the same fixture set as the TypeScript reference. Each `vectors/<name>/` directory carries a `bundle.rr` (JCS-canonical bytes), an `actual.json`, and an `expected.json`. The Python `verify()` output must match `expected.json` (verified flag plus every substring in `errorContains[]` / `warningContains[]`).
+```bash
+uv sync --extra dev && uv run pytest -v
+```
+
+Verified against the same fixture set as the TypeScript reference. Each `vectors/<name>/` directory carries a `bundle.rr`, `actual.json`, and `expected.json` — `verify()` output must match (`verified` flag plus every substring in `errorContains[]` / `warningContains[]`).
+
+| Clause | Vector | Behaviour |
+|---|---|---|
+| C1 | `c1-byte-replay-passes` | Signed bundle + matching actual + byte tolerance → pass. |
+| C2 | `c2-semantic-replay-passes` | Signed bundle + cosine ≥ threshold → pass. |
+| C3 | `c3-mutated-bundle-rejected` | Edited bundle after signing → fail with `BadSignature`. |
+| C4 | `c4-messages-mismatch-rejected` | Actual carries different messages → fail with `InputHashMismatch`. |
+
+Plus seven bonus vectors covering schema strictness, embedding-dim mismatch, structural-unsupported, and fingerprint drift.
+
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md).
+
+## Development
 
 ```bash
+git clone https://github.com/p-vbordei/agent-rerun-py
+cd agent-rerun-py
 uv sync --extra dev
 uv run pytest -v
 ```
 
-| Clause | Vector | Behavior |
-|---|---|---|
-| C1 | `c1-byte-replay-passes` | Signed bundle + matching actual + byte tolerance → pass. |
-| C2 | `c2-semantic-replay-passes` | Signed bundle + cosine ≥ threshold → pass. |
-| C3 | `c3-mutated-bundle-rejected` | Edited bundle after signing → fail with BadSignature. |
-| C4 | `c4-messages-mismatch-rejected` | Actual carries different messages → fail with InputHashMismatch. |
-
-Plus seven bonus vectors covering schema strictness, embedding dim mismatch, structural-unsupported, and fingerprint drift.
-
-## Where it fits
-
-- [`agent-rerun`](https://github.com/p-vbordei/agent-rerun) — TS reference (this port's source of truth).
-- [`agent-rerun-rs`](https://github.com/p-vbordei/agent-rerun-rs) — Rust port (same vectors).
-- [`agent-scroll-py`](https://github.com/p-vbordei/agent-scroll-py) — canonical transcript hashed into `expected.transcript_sha256`.
-
 ## License
 
-Apache 2.0 — see [LICENSE](./LICENSE).
+Apache-2.0 — see [LICENSE](./LICENSE).
