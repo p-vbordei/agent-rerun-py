@@ -1,0 +1,5 @@
+{
+  "privateKey": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "publicKey": "iojj3XQJ8ZX9UtstPLpdcspnCb8dlBIb83SIAbQPb1w=",
+  "note": "Fixed test key used to generate deterministic conformance fixtures. NEVER use for production."
+}

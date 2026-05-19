@@ -1,0 +1,7 @@
+{
+  "description": "Semantic tolerance with cosine = 0 (orthogonal). Below threshold (0.95). Verify must fail with SemanticBelowThreshold.",
+  "verified": false,
+  "errorContains": [
+    "SemanticBelowThreshold"
+  ]
+}

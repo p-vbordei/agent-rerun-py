@@ -1,0 +1,7 @@
+{
+  "description": "Bundle carries an unknown top-level field. Per SPEC §2 strictness, verify must fail with SchemaViolation rather than silently strip it.",
+  "verified": false,
+  "errorContains": [
+    "SchemaViolation"
+  ]
+}

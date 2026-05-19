@@ -1,0 +1,7 @@
+{
+  "description": "Bundle's expected embedding is 4-dim; actual's is 3-dim. Verify must fail with EmbeddingDimensionMismatch.",
+  "verified": false,
+  "errorContains": [
+    "EmbeddingDimensionMismatch"
+  ]
+}

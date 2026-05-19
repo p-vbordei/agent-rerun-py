@@ -1,0 +1,8 @@
+{
+  "description": "SPEC §6: bundle.model.fingerprint is `fp_test`; actual.runtime.fingerprint is `fp_replay_different`. Verify passes on semantic tolerance and emits a FingerprintDrift warning.",
+  "verified": true,
+  "errorContains": [],
+  "warningContains": [
+    "FingerprintDrift"
+  ]
+}

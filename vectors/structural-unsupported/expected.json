@@ -1,0 +1,7 @@
+{
+  "description": "tolerance.level === 'structural'. v0.1 reference implementations return UnsupportedTolerance.",
+  "verified": false,
+  "errorContains": [
+    "UnsupportedTolerance"
+  ]
+}

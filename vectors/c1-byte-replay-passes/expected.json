@@ -1,0 +1,5 @@
+{
+  "description": "C1: signed bundle with byte tolerance. The actual record reproduces the inputs and transcript. Verify must pass.",
+  "verified": true,
+  "errorContains": []
+}

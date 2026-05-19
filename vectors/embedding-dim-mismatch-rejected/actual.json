@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "system_prompt": "you are a helpful assistant",
+    "messages": [
+      {
+        "role": "user",
+        "content": "say hi"
+      },
+      {
+        "role": "assistant",
+        "content": "hi"
+      }
+    ]
+  },
+  "output": {
+    "embedding": "AACAPwAAAAAAAAAA"
+  }
+}

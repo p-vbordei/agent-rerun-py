@@ -1,0 +1,7 @@
+{
+  "description": "C4: actual record carries different `messages` than the bundle attests. Verify must fail with InputHashMismatch.",
+  "verified": false,
+  "errorContains": [
+    "InputHashMismatch:messages_sha256"
+  ]
+}

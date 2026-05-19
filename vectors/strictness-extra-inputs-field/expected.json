@@ -1,0 +1,7 @@
+{
+  "description": "Bundle carries an unknown field inside `inputs` (e.g. an attacker adds a hash-shaped field). Verify must fail with SchemaViolation.",
+  "verified": false,
+  "errorContains": [
+    "SchemaViolation"
+  ]
+}

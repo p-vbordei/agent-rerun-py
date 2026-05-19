@@ -1,0 +1,7 @@
+{
+  "description": "C3: signed bundle whose `sampling.temperature` was edited from 0 to 0.7 after signing. Verify must fail with BadSignature.",
+  "verified": false,
+  "errorContains": [
+    "BadSignature"
+  ]
+}

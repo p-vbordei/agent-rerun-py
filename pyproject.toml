@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-rerun"
+version = "0.1.0"
+description = "Portable reproducibility seed bundle for AI-agent steps (Python port of @p-vbordei/agent-rerun)"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Vlad Bordei", email = "bordeivlad@gmail.com" }]
+requires-python = ">=3.10"
+keywords = ["llm", "agent", "reproducibility", "replay", "determinism", "slsa", "ed25519", "jcs"]
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+dependencies = [
+  "cryptography>=42.0",
+  "jcs>=0.2.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+rerun = "agent_rerun.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/p-vbordei/agent-rerun-py"
+Reference = "https://github.com/p-vbordei/agent-rerun"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_rerun"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

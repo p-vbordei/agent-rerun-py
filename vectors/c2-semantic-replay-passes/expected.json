@@ -1,0 +1,5 @@
+{
+  "description": "C2: semantic tolerance, threshold 0.95. The actual embedding's cosine with the expected is ≥ 0.95. Verify must pass.",
+  "verified": true,
+  "errorContains": []
+}

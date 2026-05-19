@@ -1,0 +1,7 @@
+{
+  "description": "Bundle has the wrong rerun_version. Verify must fail with SchemaViolation before any tolerance check.",
+  "verified": false,
+  "errorContains": [
+    "SchemaViolation"
+  ]
+}
